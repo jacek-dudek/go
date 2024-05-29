@@ -1,0 +1,166 @@
+Some thoughts on how to organize notes from oms code familiarization activity:
+    We can try to organize based on types of entities.
+
+Some different entity types about which we might want to take notes:
+    configuration options supported by oms
+    HTTP requests that are implemented by the oms API
+    Corresponding handler functions (use delve trace for discovery)
+    Package dependencies for oms
+    individual source code files
+    type declarations
+    function definitions 
+    variable declarations
+    the main runtime loop
+    other important code blocks
+
+Made an issue branch: openm-
+Made a directory in openmpp repo for our notes.
+    Will be using a separate text file for each entity type listed above.
+
+All source code files in oms directory are declared as members of the main package.
+
+theCatalog variable referenced in oms.go is declared in modelCatalog.go
+
+Go Delve debugger working on personal workstation.
+
+Some notes on how to use Delve: 
+    Install with: go install <url to delve repository>
+    Make sure your path includes the location of your go tool binaries.
+        For go installation using apt it will be: /usr/local/go/bin
+    To start debugging change working directory to where your main package is located.
+    Start up delve debugging session with: dlv debug
+    Set initial breakpoint: b main.main
+    Let program execute until it hits the breakpoint: continue
+ 
+To pass command line options to oms when running it under delve use the double comma seperator:
+dlv debug [delve options] -- [oms command line options]
+
+To facilitate passing other command line options I started using ini configuration file.
+There is a sample ini file contained in the source code repo for oms.
+To run oms with options coming from the ini file invoke oms like this:
+    oms -ini <path to ini config file>
+Options passed via command line will override the same options set in the config file.
+
+Workflow basics:
+    Invoke dlv debug in directory where oms main package source code is located.
+    Pass oms -ini <config file> option when starting delve debug session.
+    We're using the files that are extracted from a pre-built installation of openm to configure the oms i'm building from source code and running a debug session.
+    Set breakpoints on handler functions, for example handlerGet.go
+    Using curl to initiate an http request on the oms running in debug session
+    Then the execution gets to the breakpoint I set, and I can step through from point and study the data types and subsequent functions that get invoked.
+    I think there's also a way to display variables in the debugger, so I want to figure that out.
+
+
+Brainstorming on how to start oms service discovery.
+----------------------------------------------------
+Pick a specific http request and see if you can step through the response handling code.
+Note the functions being called and the data structures being created.
+The openm++ wiki section on web service API has useful info on the rest endpoint formulations. Review it.
+Work through the delve debugger tutorial to use it more effectively.
+    Some promising delve commands:
+        list: shows the source code neighbourhood around the current program position.
+        stack: Prints stack trace. Can call this after hitting a breakpoint and inspect this output.
+        goroutines or grs: Lists program goroutines (that are currently running?).
+        goroutine or gr: shows or changes(?) current goroutine.
+        args: Print function arguments (function which we just stepped into?)
+        locals: Print local variables (all variables in current scope?)
+        vars: Print package variables. Variables defined in package scope?
+        set: Modify the value of a variable.
+        whatis: Print type of an expression (what expression?)
+
+Most relevant books for the next week or two: 
+    Golang programming books, networking books, kubernetes book.
+
+Recall that F12 opens developer tools in most browsers.
+Network tab should capture the content information of http requests that the openm UI will be making.
+
+Let's see if we can step through the response for this request:
+    http://localhost:4040/api/model-list/text
+
+workset is another term for scenario
+-------                     --------
+
+daily brainstorming
+Go over the three or so main api calls related to openm-61
+    GET list of models
+    GET specific model 
+
+    GET list of model worksets
+    GET workset status
+
+    GET model profiles (something like config file applied to a model)
+    * I think model scenarios would be more important. (I think they're called worksets)
+
+    GET list of model runs
+    GET specific model run
+
+I think when they use the term model run status it really means model run result.
+
+Useful types of information for a given api call:
+    Request json object (if any) example and schema.
+    Response json object (if any) example and schema.
+    Something like a function call tree from invocation to termination of api handler.
+    Files being accessed during the request handling.
+    Types of variables being accessed and created during request handling.
+
+This command worked while other variations did not. 
+    go get github.com/openmpp/go/oms
+
+    It appears that we need to specify the directory that contains all the source files for a given package (and only that package?)
+
+    (*) When invoking go-callvis the working directory apparently needs to be where the module file is located. So in home/jacek/Projects/OpenM++/go.
+    If I need to be in that directory, then I have no idea why I also needed to install the module using go into the go installation directory. Or maybe I did not need to install it?
+
+Then this command worked:
+    go-callvis github.com/openmpp/go/oms 
+
+Now let's browse the documentation for go-callvis to limit the packages included in the visualization (exclude standard go packages) as the current graph is way too large to display on screen and get any insight from it.
+
+Used the --nostd to hide calls to functions in standard packages.
+
+* * * But the graph is still too big. Can we use some other command line options to limit what's shown only to calls outgoing from a specific function? That would allow us to create seperate function call graphs for each request handler!
+    We will try editing the intermediate dot file either manually or by implementing a simple parser.
+
+If I was responsible for implementing openm as a service on kubernetes, how would I go about it?
+    Components:
+        Cluster deployment using Azure kubernetes service.
+            Alternative: Actual hardware based implementation.
+        User registry/authentication/authorization part.
+        The OpenM related services to be deployed on the cluster:
+            Openm++ with web service and UI stand-alone (not piggybacking on Kubeflow)
+            Something for model development? Web-based IDE like VSCode.
+        Personal interest services: 
+            Your PIM, PDA, PML running as services.
+            karabela-solar-jetpack game
+            simulation-and-modelling one-page apps
+
+Use this command to format json output into reader-friendly form:
+curl <request> | jq . > output.json
+
+Experiment with these two delve commands:
+    dlv display is a command to output variable values. 
+    dlv print <variable> apparently outputs structure types in more detail than dlv display.  
+
+Quick notes on differences between http verbs POST, PUT, PATCH:
+POST
+    Is used to submit a new entity to an endpoint.
+    When a POST request is sent the server creates a new resource and (usually?) assigns a new URL to it.
+    POST requests have a request body with data in json, XML, or other structured format.
+    Request body is optional (but it's probably poor form not to use it).
+    POST request are not necessarily idempotent. Contrast with PUT.
+PUT
+    Is used to update a resource or create a new resource if it does not exist.
+    When a PUT request is sent any existing resource gets replaced by the data in this new request.
+    So it's basically the same as POST. What's the difference? 
+    Does POST return an error when the resource already exists?
+    PUT requests are idempotent.
+PATCH
+    Is used to partially update a resource.
+    It does not replace an existing resource. And I think the resource has to already exist?
+    In a PATCH request you specify the fields that you want to update in the request body.
+    Some examples of PATCH operations specified in the request body:
+    [
+        {"op": "replace", "path": "/name", "value": "Jacek"},
+        {"op": "add", "path": "/address", "value": "Milroy Drive"},
+        {"op": "remove", "path": "/password"}
+    ]

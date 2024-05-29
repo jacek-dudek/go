@@ -171,3 +171,13 @@ func modelList(srcDb *sql.DB) error {
 
 	return nil
 }
+
+
+// Not sure if we want a database handle as argument or stuff coming from cfg variables.
+// We will need to initialize theCatalog as oms does it.
+// Then call getModelMetaWithText with language and model name arguments coming from theCfg.
+// Then handle the return value according output option picked in theCfg as well.
+func getModelMetadata( ) error {
+
+}
+
