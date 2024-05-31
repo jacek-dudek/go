@@ -386,8 +386,11 @@ func mainBody(args []string) error {
 	switch theCfg.action {
 	case "model-list":
 		return modelList(srcDb)
-	case "parameter":
-		return parameterValue(srcDb, modelId, runOpts)
+
+	case "model-metadata":
+        // As arguments we need model name or digest, language list, and database filepath.
+        return modelMetadata(theCfg.modelName, theCfg.modelDigest, theCfg.lang, runOpts.String[sqliteShortKey])
+
 	case "microdata-aggregate":
 		return microdataAggregate(srcDb, modelId, false, runOpts)
 	case "microdata-compare":

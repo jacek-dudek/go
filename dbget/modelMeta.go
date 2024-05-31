@@ -46,7 +46,7 @@ func modelList(srcDb *sql.DB) error {
 	}
 
 	// write json output into file or console
-	if theCfg.kind == asJson {
+    if theCfg.kind == asJson {
 
 		type mItem struct {
 			Model     db.ModelDicRow
@@ -172,12 +172,39 @@ func modelList(srcDb *sql.DB) error {
 	return nil
 }
 
+func modelMetadata(modelName, modelDigest, lang, dbPath string) error {
+    // * The model catalog function expects a file path to the database as an argument.
 
-// Not sure if we want a database handle as argument or stuff coming from cfg variables.
-// We will need to initialize theCatalog as oms does it.
-// Then call getModelMetaWithText with language and model name arguments coming from theCfg.
-// Then handle the return value according output option picked in theCfg as well.
-func getModelMetadata( ) error {
+    // Need to initialize theCatalog.
+
+    // Check if sqlite database path was explicitly provided.
+    // runOpts.String[sqliteArgKey]
+    // runOpts.String[sqliteShortKey]
+
+     // If above are not set if current working directory has a... 
+
+    theCatalog.loadModelDbFile(dbPath)
+
+    // open db file, read models metadata and append it into catalog
+    // return error if any model digest already exists in catalog
+    // func (mc *ModelCatalog) loadModelDbFile(srcPath string) (int, error) {
+    // }
+
+    // Need to construct arguments for getModelMetaWithText and then call it.
+    digestOrName := modelName
+    if digestOrName == "" {
+        digestOrName = modelDigest
+    }
+
+    lang := {language.Make(theCfg.lang)}
+
+    // The way getModelMetaWithText is written it expects to have 
+    // theCatalog in scope and just refers to it in the function body.
+    // func getModelMetaWithText(digestOrName string, lang []language.Tag, isPack bool) interface{}, error
+    modelMeta, err = getModelMetaWithText(digestOrName, lang, false)
+
+
 
 }
+
 
