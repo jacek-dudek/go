@@ -9,6 +9,7 @@ import (
 
 	"github.com/openmpp/go/ompp/db"
 	"github.com/openmpp/go/ompp/omppLog"
+    "github.com/openmpp/go/oms"
 )
 
 // Get model metadata, including language-specific text.
@@ -29,7 +30,7 @@ import (
 // *         Inside getText, calls made on lines: 121-131.
 
 //func doModelTextHandler(w http.ResponseWriter, r *http.Request, isPack bool) {
-func getModelMetaWithText(digestOrName string, lang []language.Tag, isPack bool) interface{}, error {
+func getModelMetaWithText(digestOrName string, lang []language.Tag, isPack bool) (interface{}, error) {
 
 	// TypeDescrNote is join of type_dic_txt, model_type_dic, type_dic_txt
 	type TypeDescrNote struct {
@@ -103,7 +104,7 @@ func getModelMetaWithText(digestOrName string, lang []language.Tag, isPack bool)
 	// It is sliced by one single language, but it can be different single language for each row.
 	// It is either user preferred language, model default language, first of the row or empty "" language.
 	type modelMetaDescrNote struct {
-		ModelDicDescrNote                   // model text rows: model_dic_txt
+		oms.ModelDicDescrNote                   // model text rows: model_dic_txt
 		TypeTxt           []TypeDescrNote   // model type text rows: type_dic_txt join to model_type_dic
 		ParamTxt          []ParamDescrNote  // model parameter text rows: parameter_dic, model_parameter_dic, parameter_dic_txt, parameter_dims_txt
 		TableTxt          []TableDescrNote  // model output table text rows: table_dic, model_table_dic, table_dic_txt, table_dims_txt, table_acc_txt, table_expr_txt
@@ -114,7 +115,7 @@ func getModelMetaWithText(digestOrName string, lang []language.Tag, isPack bool)
 	// ModelMetaTextByDigestOrName return language-specific model metadata
 	// by model digest or name and preferred language tags.
 	// It can be in default model language or empty if no model text db rows exist.
-	getText := func(mc *ModelCatalog, dn string, mdRow *db.ModelDicRow, lc string, lcd string) (*modelMetaDescrNote, bool) {
+	getText := func(mc *oms.ModelCatalog, dn string, mdRow *db.ModelDicRow, lc string, lcd string) (*modelMetaDescrNote, bool) {
 
 		// lock model catalog and copy text metadata for perfered language or default model language
 		mc.theLock.Lock()
@@ -130,7 +131,7 @@ func getModelMetaWithText(digestOrName string, lang []language.Tag, isPack bool)
 		txtMeta := mc.modelLst[imdl].txtMeta
 
 		mt := modelMetaDescrNote{
-			ModelDicDescrNote: ModelDicDescrNote{Model: meta.Model},
+			ModelDicDescrNote: oms.ModelDicDescrNote{Model: meta.Model},
 			TypeTxt:           make([]TypeDescrNote, len(meta.Type)),
 			ParamTxt:          make([]ParamDescrNote, len(meta.Param)),
 			TableTxt:          make([]TableDescrNote, len(meta.Table)),

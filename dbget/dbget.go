@@ -389,7 +389,7 @@ func mainBody(args []string) error {
 
 	case "model-metadata":
         // As arguments we need model name or digest, language list, and database filepath.
-        return modelMetadata(theCfg.modelName, theCfg.modelDigest, theCfg.lang, runOpts.String[sqliteShortKey])
+        return modelMetadata(theCfg.modelName, theCfg.modelDigest, theCfg.lang, runOpts.String(sqliteShortKey))
 
 	case "microdata-aggregate":
 		return microdataAggregate(srcDb, modelId, false, runOpts)

@@ -136,7 +136,7 @@ Also oms support OpenM++ standard log settings (described in openM++ wiki):
 	-OpenM.LogUsePid:        if true then use pid-stamp in log file name
 	-OpenM.LogSql:           if true then log sql statements into log file
 */
-package main
+package oms
 
 import (
 	"context"

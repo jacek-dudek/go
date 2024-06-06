@@ -196,15 +196,18 @@ func modelMetadata(modelName, modelDigest, lang, dbPath string) error {
         digestOrName = modelDigest
     }
 
-    lang := {language.Make(theCfg.lang)}
+    lang := []language.Tag{language.Make(lang)}
 
     // The way getModelMetaWithText is written it expects to have 
     // theCatalog in scope and just refers to it in the function body.
     // func getModelMetaWithText(digestOrName string, lang []language.Tag, isPack bool) interface{}, error
-    modelMeta, err = getModelMetaWithText(digestOrName, lang, false)
+    _ , err := getModelMetaWithText(digestOrName, lang, false)
 
-
-
+    if err != nil {
+        fmt.Println(err.Error)
+    } else {
+        fmt.Println("success")
+    }
 }
 
 
